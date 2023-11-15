@@ -4,3 +4,85 @@ author: "Kevin Liu"
 date: "2023-11-12"
 output: github_document
 ---
+
+```{r include = FALSE}
+library(tidyverse)
+library(rvest)
+```
+
+# Problem 1
+
+```{r }
+raw_homicide_data =
+  read_csv("./data/homicide-data.csv") |> 
+  janitor::clean_names()
+```
+
+__Describe the raw data__
+
+* There are `r nrow(raw_homicide_data)` rows and `r ncol(raw_homicide_data)` variables in the raw dataset.
+* The 11 variables are "uid", "reported_date", "victim_last", "victim_first", "victim_race", "victim_age", "victim_sex", "city", "state", "lat", and "lon".
+  * Respectively their variable types: chr, num, chr, chr, chr, chr, chr, chr, chr, num, num, and chr. 
+  * The variables include full name of victim, their race, age, sex, the city and state and the coordinates of the homicide report and the date.
+
+__Create a `city_state` variable__
+
+```{r}
+raw_homicide_data = 
+  raw_homicide_data |> 
+  
+  #Create variable "city_state" which is a concatenation of city + state separated by , .
+  mutate(city_state = paste(city, state, sep = ", "))
+```
+
+__Summarize__ 
+...within cities to obtain the total number of homicides and the number of unsolved homicides.
+
+```{r}
+sum_homicides =
+  raw_homicide_data |> 
+  
+  #Group by city_state 
+  group_by(city_state) |> 
+  
+  #Summarize total_homicides as # of data inputs in each city and num_unsolved the # of data with "Closed without arrest" and "Open/No arrest" as the string value for disposition
+  summarize(total_homicides = n(), num_unsolved = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))) 
+```
+
+__For City of Baltimore, MD...__
+...use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply the broom::tidy to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
+
+```{r}
+#Extract Baltimore_MD data from the summarized data aobve
+baltimore_prop = 
+  sum_homicides |> 
+  filter(city_state == "Baltimore, MD")
+
+#Extract the number of unsolved and total homicides from baltimore dataset
+balt_unsolved = baltimore_prop$num_unsolved
+balt_total = baltimore_prop$total_homicides
+
+#Use prop.test function on the unsolved and total homicides from baltimore
+balt_proptest = 
+  prop.test(balt_unsolved, balt_total) |> 
+  
+  #Tidy the propotional test output
+  broom::tidy()
+
+#Extract the proportion and confidence interval from balt_proptes
+balt_est = balt_proptest$estimate
+balt_ci_low = balt_proptest$conf.low
+balt_ci_high = balt_proptest$conf.high
+```
+
+__Now Run `prop.test` on each city...__
+...in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. Do this within a “tidy” pipeline, making use of purrr::map, purrr::map2, list columns and unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.
+
+```{r}
+#Create function that takes in city name and outputs proportions + CIs
+
+#Iterate through all cities in the summarized data and produce df with proportions + CIs for each city
+
+## Create list of city_states and their total_homicides + 
+```
+
