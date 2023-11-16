@@ -160,8 +160,23 @@ subject_data =
   pivot_longer(
     week_1:week_8,
     names_to = "week",
-    values_to = "value")
-  )
+    values_to = "value"
+  ) |> 
+  mutate(week = as.numeric(substr(week,6,6)))
 
 ```
+
+__Make a spaghetti plot__
+
+..showing observations on each subject over time, and comment on differences between groups.
+
+```{r}
+subject_data |> 
+  ggplot(aes(x = week, y = value, color = arm, linetype = subject_id)) +
+  geom_line()
+```
+_Difference_
+
+* It seems like those in the experimental, have an overall increasing trend and are somewhat have higher absolute values compared to control
+
 
